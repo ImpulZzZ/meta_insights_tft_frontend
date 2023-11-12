@@ -1,12 +1,14 @@
 part of widget_lib;
 
-class TraitStylesRow extends StatelessWidget {
-  final Map<String, int> traitStyles;
+class CombinationRow extends StatelessWidget {
+  final Map<String, int> composition;
   final Map<String, String> icons;
+  final String groupBy;
 
-  TraitStylesRow({required this.traitStyles, required this.icons});
+  CombinationRow(
+      {required this.composition, required this.icons, required this.groupBy});
 
-  Color getStyleColor(int style) {
+  Color getStyleColor(int? style) {
     switch (style) {
       case 1:
         return const Color.fromARGB(255, 167, 116, 98);
@@ -24,15 +26,16 @@ class TraitStylesRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        for (var trait in traitStyles.keys)
+        for (var current in composition.keys)
           Container(
             width: 30,
             height: 30,
-            color: getStyleColor(traitStyles[trait]!),
+            color:
+                groupBy == "trait" ? getStyleColor(composition[current]) : null,
             child: Image(
-              image: AssetImage('assets${icons[trait]}'),
+              image: AssetImage('assets${icons[current]}'),
               fit: BoxFit.fill,
-              color: Colors.black,
+              color: groupBy == "trait" ? Colors.black : null,
             ),
           )
       ],
