@@ -16,9 +16,9 @@ class ApiRequestService {
     }
   }
 
-  Future<List<CompositionGroup>?> getCompositionGroupsByTrait() async {
+  Future<List<CompositionGroup>?> getCompositionGroups(String groupBy) async {
     var client = http.Client();
-    var url = Uri.parse('http://localhost:8000/compositionGroup/by-trait?');
+    var url = Uri.parse('http://localhost:8000/compositionGroup/by-$groupBy');
     var response = await client.get(url);
     if (response.statusCode == 200) {
       var jsonString = response.body;
