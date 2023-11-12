@@ -17,41 +17,9 @@ class CompositionGroupTable extends StatefulWidget {
 class _CompositionGroupTableState extends State<CompositionGroupTable> {
   @override
   Widget build(BuildContext context) {
-    return ListView(
-      children: [
-        DataTable(
-          columns: getTableHeaders(),
-          rows: [
-            for (var compositionGroup in widget.compositionGroups)
-              DataRow(cells: [
-                DataCell(Text('${compositionGroup.getCounter()}')),
-                DataCell(Text('${compositionGroup.getAvgPlacement()}')),
-                DataCell(TraitStylesRow(
-                  traitStyles: compositionGroup.getTraitStyles(),
-                  icons: widget.icons,
-                )),
-              ]),
-          ],
-        )
-      ],
-    );
-  }
-
-  List<DataColumn> getTableHeaders() {
-    switch (widget.groupBy) {
-      case "trait":
-        return [
-          DataColumn(label: Text('Occurences')),
-          DataColumn(label: Text('Average Placement')),
-          DataColumn(label: Text('Traits'))
-        ];
-      case "champion":
-        return [
-          DataColumn(label: Text('Occurences')),
-          DataColumn(label: Text('Average Placement')),
-          DataColumn(label: Text('Champions'))
-        ];
-    }
-    return [];
+    return CompositionView(
+        compositionGroups: widget.compositionGroups,
+        icons: widget.icons,
+        groupBy: widget.groupBy);
   }
 }
