@@ -2,10 +2,13 @@ part of widget_lib;
 
 class CompositionGroupTable extends StatefulWidget {
   List<CompositionGroup> compositionGroups;
-  Map<String, String> traitIcons;
+  Map<String, String> icons;
+  String groupBy;
 
   CompositionGroupTable(
-      {required this.compositionGroups, required this.traitIcons});
+      {required this.compositionGroups,
+      required this.icons,
+      required this.groupBy});
 
   @override
   State<CompositionGroupTable> createState() => _CompositionGroupTableState();
@@ -17,7 +20,7 @@ class _CompositionGroupTableState extends State<CompositionGroupTable> {
     return ListView(
       children: [
         DataTable(
-          columns: getTableHeaders('trait'),
+          columns: getTableHeaders(),
           rows: [
             for (var compositionGroup in widget.compositionGroups)
               DataRow(cells: [
@@ -25,7 +28,7 @@ class _CompositionGroupTableState extends State<CompositionGroupTable> {
                 DataCell(Text('${compositionGroup.getAvgPlacement()}')),
                 DataCell(TraitStylesRow(
                   traitStyles: compositionGroup.getTraitStyles(),
-                  traitIcons: widget.traitIcons,
+                  icons: widget.icons,
                 )),
               ]),
           ],
@@ -34,8 +37,8 @@ class _CompositionGroupTableState extends State<CompositionGroupTable> {
     );
   }
 
-  List<DataColumn> getTableHeaders(String groupBy) {
-    switch (groupBy) {
+  List<DataColumn> getTableHeaders() {
+    switch (widget.groupBy) {
       case "trait":
         return [
           DataColumn(label: Text('Occurences')),
