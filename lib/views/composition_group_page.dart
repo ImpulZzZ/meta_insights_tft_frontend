@@ -12,7 +12,7 @@ class CompositionGroupPage extends StatefulWidget {
 
 class _CompositionGroupPageState extends State<CompositionGroupPage> {
   List<CompositionGroup>? compositionGroups;
-  Map<String, String>? traitIcons;
+  Map<String, String>? icons;
   var isLoaded = false;
 
   @override
@@ -25,8 +25,8 @@ class _CompositionGroupPageState extends State<CompositionGroupPage> {
 
   getData() async {
     compositionGroups = await ApiRequestService().getCompositionGroupsByTrait();
-    traitIcons = await ApiRequestService().getIconMap('trait');
-    if (compositionGroups != null && traitIcons != null) {
+    icons = await ApiRequestService().getIconMap('trait');
+    if (compositionGroups != null && icons != null) {
       setState(() {
         isLoaded = true;
       });
@@ -41,7 +41,9 @@ class _CompositionGroupPageState extends State<CompositionGroupPage> {
         ),
         body: isLoaded
             ? CompositionGroupTable(
-                compositionGroups: compositionGroups!, traitIcons: traitIcons!)
+                compositionGroups: compositionGroups!,
+                icons: icons!,
+                groupBy: "trait")
             : Center(child: CircularProgressIndicator()));
   }
 }
