@@ -9,26 +9,26 @@ String compositionGroupToJson(List<CompositionGroup> data) =>
 
 class CompositionGroup {
   int counter;
-  Map<String, int> traitStyles;
+  Map<String, int> combination;
   double avgPlacement;
 
   CompositionGroup({
     required this.counter,
-    required this.traitStyles,
+    required this.combination,
     required this.avgPlacement,
   });
 
   factory CompositionGroup.fromJson(Map<String, dynamic> json) =>
       CompositionGroup(
         counter: json["counter"],
-        traitStyles: Map.from(json["trait_styles"])
+        combination: Map.from(json["combination"])
             .map((k, v) => MapEntry<String, int>(k, v)),
         avgPlacement: json["avg_placement"]?.toDouble(),
       );
 
   Map<String, dynamic> toJson() => {
         "counter": counter,
-        "trait_styles": Map.from(traitStyles)
+        "combination": Map.from(combination)
             .map((k, v) => MapEntry<String, dynamic>(k, v)),
         "avg_placement": avgPlacement,
       };
@@ -41,11 +41,11 @@ class CompositionGroup {
     return avgPlacement.toString();
   }
 
-  String getTraitStylesString() {
-    return traitStyles.toString();
+  String getCombinationString() {
+    return combination.toString();
   }
 
-  Map<String, int> getTraitStyles() {
-    return traitStyles;
+  Map<String, int> getCombination() {
+    return combination;
   }
 }
