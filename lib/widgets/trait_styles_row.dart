@@ -2,9 +2,9 @@ part of widget_lib;
 
 class TraitStylesRow extends StatelessWidget {
   final Map<String, int> traitStyles;
-  final Map<String, String> traitIcons;
+  final Map<String, String> icons;
 
-  TraitStylesRow({required this.traitStyles, required this.traitIcons});
+  TraitStylesRow({required this.traitStyles, required this.icons});
 
   Color getStyleColor(int style) {
     switch (style) {
@@ -30,7 +30,7 @@ class TraitStylesRow extends StatelessWidget {
             height: 30,
             color: getStyleColor(traitStyles[trait]!),
             child: Image(
-              image: AssetImage('assets${traitIcons[trait]}'),
+              image: AssetImage('assets${icons[trait]}'),
               fit: BoxFit.fill,
               color: Colors.black,
             ),
