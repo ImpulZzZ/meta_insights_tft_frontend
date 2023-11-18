@@ -5,8 +5,8 @@ class CombinationRow extends StatelessWidget {
   final Map<String, String> icons;
   final String groupBy;
 
-  CombinationRow(
-      {required this.composition, required this.icons, required this.groupBy});
+  const CombinationRow(
+      {super.key, required this.composition, required this.icons, required this.groupBy});
 
   Color getStyleColor(int? style) {
     switch (style) {

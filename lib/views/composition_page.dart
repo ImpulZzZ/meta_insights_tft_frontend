@@ -34,11 +34,11 @@ class _CompositionPageState extends State<CompositionPage> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          title: Text('Compositions'),
+          title: const Text('Compositions'),
         ),
         body: Visibility(
             visible: isLoaded,
-            replacement: Center(
+            replacement: const Center(
               child: CircularProgressIndicator(),
             ),
             child: ListView.builder(
