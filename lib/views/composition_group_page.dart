@@ -21,9 +21,9 @@ class _CompositionGroupPageState extends State<CompositionGroupPage> {
   DateTime minDatetime = DateTime.now().subtract(const Duration(days: 14));
   var isLoaded = false;
 
+  late String region;
+  late String league;
   late final TextEditingController patchController;
-  late final TextEditingController regionController;
-  late final TextEditingController leagueController;
   late final TextEditingController maxPlacementController;
   late final TextEditingController maxAvgPlacementController;
   late final TextEditingController minCounterController;
@@ -32,10 +32,10 @@ class _CompositionGroupPageState extends State<CompositionGroupPage> {
   @override
   void initState() {
     super.initState();
+    region = 'europe';
+    league = 'challenger';
 
     patchController = TextEditingController(text: "13.22");
-    regionController = TextEditingController(text: "europe");
-    leagueController = TextEditingController(text: "challenger");
     maxPlacementController = TextEditingController(text: "4");
     maxAvgPlacementController = TextEditingController(text: "4");
     minCounterController = TextEditingController(text: "4");
@@ -46,8 +46,6 @@ class _CompositionGroupPageState extends State<CompositionGroupPage> {
   @override
   void dispose() {
     patchController.dispose();
-    regionController.dispose();
-    leagueController.dispose();
     maxPlacementController.dispose();
     maxAvgPlacementController.dispose();
     minCounterController.dispose();
@@ -67,15 +65,15 @@ class _CompositionGroupPageState extends State<CompositionGroupPage> {
         int.parse(maxPlacementController.text),
         int.parse(maxAvgPlacementController.text),
         int.parse(minCounterController.text),
-        regionController.text,
-        leagueController.text,
+        region,
+        league,
         minDatetime);
     icons = await ApiRequestService().getIconMap(groupBy);
     if (compositionGroups != null && icons != null) {
       setState(() {
         isLoaded = true;
         headline =
-            "Played ${groupBy}s in ${regionController.text} ${leagueController.text} on patch ${patchController.text}";
+            "Played ${groupBy}s in $region $league on patch ${patchController.text}";
       });
     }
   }
@@ -120,8 +118,8 @@ class _CompositionGroupPageState extends State<CompositionGroupPage> {
             title: const Text("General"),
             children: [
               buildSizedTextField(patchController, "Patch"),
-              buildSizedTextField(regionController, "Region"),
-              buildSizedTextField(leagueController, "League"),
+              buildRegionDropdownField(),
+              buildLeagueDropdownField(),
               buildSelectDatetimeButton(),
             ],
           ),
@@ -192,6 +190,43 @@ class _CompositionGroupPageState extends State<CompositionGroupPage> {
           ),
         ),
       );
+
+  Padding buildRegionDropdownField() => Padding(
+      padding: listViewChildrenPadding,
+      child: DropdownButtonFormField<String>(
+          value: region,
+          decoration: const InputDecoration(
+              border: OutlineInputBorder(), labelText: "Region"),
+          items: <String>['europe', 'korea'].map((String value) {
+            return DropdownMenuItem<String>(
+              value: value,
+              child: Text(value),
+            );
+          }).toList(),
+          onChanged: (String? newValue) {
+            setState(() {
+              region = newValue!;
+            });
+          }));
+
+  Padding buildLeagueDropdownField() => Padding(
+      padding: listViewChildrenPadding,
+      child: DropdownButtonFormField<String>(
+          value: league,
+          decoration: const InputDecoration(
+              border: OutlineInputBorder(), labelText: "League"),
+          items: <String>['challenger', 'grandmaster', 'master']
+              .map((String value) {
+            return DropdownMenuItem<String>(
+              value: value,
+              child: Text(value),
+            );
+          }).toList(),
+          onChanged: (String? newValue) {
+            setState(() {
+              league = newValue!;
+            });
+          }));
 
   Padding buildIgnoreSingleUnitTraitsCheckBox() => Padding(
         padding: listViewChildrenPadding,
