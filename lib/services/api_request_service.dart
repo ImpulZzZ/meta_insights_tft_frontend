@@ -16,16 +16,48 @@ class ApiRequestService {
     }
   }
 
-  Future<List<CompositionGroup>?> getCompositionGroups(String groupBy) async {
-    var client = http.Client();
-    var url = Uri.parse('http://localhost:8000/compositionGroup/by-$groupBy');
-    var response = await client.get(url);
+  Future<List<CompositionGroup>?> getCompositionGroups(String groupBy,
+      [String? patch,
+      int? nTraits,
+      bool? ignoreSingleUnitTraits,
+      int? maxPlacement,
+      int? maxAvgPlacement,
+      int? minCounter,
+      String? region,
+      String? league,
+      DateTime? minDatetime]) async {
+    Map<String, String> queryParameters = {};
+
+    addParametersIfNotNull(queryParameters, {
+      'n_traits': nTraits,
+      'ignore_single_unit_traits': ignoreSingleUnitTraits,
+      'region': region,
+      'league': league,
+      'min_datetime': minDatetime?.toIso8601String(),
+      'max_placement': maxPlacement,
+      'max_avg_placement': maxAvgPlacement,
+      'min_counter': minCounter,
+    });
+
+    var uri = Uri.http(
+        'localhost:8000', '/compositionGroup/by-$groupBy', queryParameters);
+    var response = await http.get(uri);
+
     if (response.statusCode == 200) {
       var jsonString = response.body;
       return compositionGroupFromJson(jsonString);
     } else {
       return null;
     }
+  }
+
+  void addParametersIfNotNull(
+      Map<String, String?> queryParameters, Map<String, dynamic> parameters) {
+    parameters.forEach((key, value) {
+      if (value != null) {
+        queryParameters[key] = value.toString();
+      }
+    });
   }
 
   Future<Map<String, String>?> getIconMap(String table) async {
