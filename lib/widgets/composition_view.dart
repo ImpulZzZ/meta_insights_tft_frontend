@@ -38,7 +38,7 @@ class CompositionView extends StatelessWidget {
     return DataColumn(
         label: Text(
       labelText,
-      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
     ));
   }
 
