@@ -29,6 +29,7 @@ class ApiRequestService {
     Map<String, String> queryParameters = {};
 
     addParametersIfNotNull(queryParameters, {
+      'patch': patch,
       'n_traits': nTraits,
       'ignore_single_unit_traits': ignoreSingleUnitTraits,
       'region': region,
