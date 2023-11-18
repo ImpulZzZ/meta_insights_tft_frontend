@@ -34,19 +34,27 @@ class CompositionView extends StatelessWidget {
     );
   }
 
+  DataColumn getUniformHeaderColumn(String labelText) {
+    return DataColumn(
+        label: Text(
+      labelText,
+      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+    ));
+  }
+
   List<DataColumn> getTableHeaders() {
     switch (groupBy) {
       case "trait":
         return [
-          const DataColumn(label: Text('Occurences')),
-          const DataColumn(label: Text('Average Placement')),
-          const DataColumn(label: Text('Traits'))
+          getUniformHeaderColumn("Occurences"),
+          getUniformHeaderColumn("Average Placement"),
+          getUniformHeaderColumn("Traits"),
         ];
       case "champion":
         return [
-          const DataColumn(label: Text('Occurences')),
-          const DataColumn(label: Text('Average Placement')),
-          const DataColumn(label: Text('Champions'))
+          getUniformHeaderColumn("Occurences"),
+          getUniformHeaderColumn("Average Placement"),
+          getUniformHeaderColumn("Champions"),
         ];
     }
     return [];
