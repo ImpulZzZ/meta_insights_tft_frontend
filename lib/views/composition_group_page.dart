@@ -12,9 +12,11 @@ class CompositionGroupPage extends StatefulWidget {
 }
 
 class _CompositionGroupPageState extends State<CompositionGroupPage> {
+  final listViewChildrenPadding = const EdgeInsets.all(6);
   List<CompositionGroup>? compositionGroups;
   Map<String, String>? icons;
   String groupBy = "trait";
+  String headline = "";
   bool ignoreSingleUnitTraits = false;
   DateTime minDatetime = DateTime.now().subtract(const Duration(days: 14));
   var isLoaded = false;
@@ -72,6 +74,8 @@ class _CompositionGroupPageState extends State<CompositionGroupPage> {
     if (compositionGroups != null && icons != null) {
       setState(() {
         isLoaded = true;
+        headline =
+            "Played ${groupBy}s in ${regionController.text} ${leagueController.text} on patch ${patchController.text}";
       });
     }
   }
@@ -80,7 +84,7 @@ class _CompositionGroupPageState extends State<CompositionGroupPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Meta Insights"),
+        title: Text(headline),
       ),
       body: Center(
         child: isLoaded
@@ -112,33 +116,62 @@ class _CompositionGroupPageState extends State<CompositionGroupPage> {
               child: Text("Filters"),
             ),
           ),
-          buildSizedTextField(patchController, "Patch"),
-          buildSizedTextField(regionController, "Region"),
-          buildSizedTextField(leagueController, "League"),
-          buildSelectDatetimeButton(),
-          buildSizedNumberField(
-              nTraitsController, "Trait combination size", 1, 7),
-          buildIgnoreSingleUnitTraitsCheckBox(),
-          buildSizedNumberField(maxPlacementController, "Max placement", 1, 8),
-          buildSizedNumberField(
-              maxAvgPlacementController, "Max average placement", 1, 8),
-          buildSizedNumberField(minCounterController, "Min occurences", 0, 999),
+          ExpansionTile(
+            title: const Text("General"),
+            children: [
+              buildSizedTextField(patchController, "Patch"),
+              buildSizedTextField(regionController, "Region"),
+              buildSizedTextField(leagueController, "League"),
+              buildSelectDatetimeButton(),
+            ],
+          ),
+          ExpansionTile(
+            title: const Text("Performance"),
+            initiallyExpanded: true,
+            children: [
+              buildSizedNumberField(
+                  maxPlacementController, "Max placement", 1, 8),
+              buildSizedNumberField(
+                  maxAvgPlacementController, "Max average placement", 1, 8),
+              buildSizedNumberField(
+                  minCounterController, "Min occurences", 0, 999),
+            ],
+          ),
+          ExpansionTile(
+            title: const Text("Combinations"),
+            children: [
+              buildSizedNumberField(
+                  nTraitsController, "Trait combination size", 1, 7),
+              buildIgnoreSingleUnitTraitsCheckBox(),
+            ],
+          ),
           buildApplyButton()
         ],
       ));
 
-  SizedBox buildSelectDatetimeButton() => SizedBox(
-        child: TextButton.icon(
-          icon: const Icon(Icons.calendar_today),
-          label: Text(
-              "Matches since: ${minDatetime.year}-${minDatetime.month}-${minDatetime.day}"),
-          onPressed: () => setState(() {
-            showDateTimePicker(context: context);
-          }),
+  Padding buildSelectDatetimeButton() => Padding(
+        padding: listViewChildrenPadding,
+        child: Container(
+          width: double.infinity, // takes all available width
+          height: 50.0, // adjust this value as needed
+          alignment: Alignment.centerLeft, // aligns the child to the left
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.black),
+            borderRadius: BorderRadius.circular(4.0),
+          ),
+          child: TextButton.icon(
+            icon: const Icon(Icons.calendar_today),
+            label: Text(
+                "Matches since: ${minDatetime.year}-${minDatetime.month}-${minDatetime.day}"),
+            onPressed: () => setState(() {
+              showDateTimePicker(context: context);
+            }),
+          ),
         ),
       );
 
-  SizedBox buildApplyButton() => SizedBox(
+  Padding buildApplyButton() => Padding(
+        padding: listViewChildrenPadding,
         child: ElevatedButton(
           child: const Text("Apply filters"),
           onPressed: () => setState(() {
@@ -148,34 +181,51 @@ class _CompositionGroupPageState extends State<CompositionGroupPage> {
         ),
       );
 
-  SizedBox buildSizedTextField(
-          TextEditingController controller, String label) =>
-      SizedBox(
+  Padding buildSizedTextField(TextEditingController controller, String label) =>
+      Padding(
+        padding: listViewChildrenPadding,
         child: TextField(
           controller: controller,
-          decoration: InputDecoration(labelText: label),
+          decoration: InputDecoration(
+            labelText: label,
+            border: const OutlineInputBorder(),
+          ),
         ),
       );
 
-  SizedBox buildIgnoreSingleUnitTraitsCheckBox() => SizedBox(
-        child: CheckboxListTile(
-          title: const Text("Ignore single unit traits"),
-          value: ignoreSingleUnitTraits,
-          onChanged: (newValue) {
-            setState(() {
-              ignoreSingleUnitTraits = newValue!;
-            });
-          },
-          controlAffinity: ListTileControlAffinity.trailing,
+  Padding buildIgnoreSingleUnitTraitsCheckBox() => Padding(
+        padding: listViewChildrenPadding,
+        child: Container(
+          width: double.infinity, // takes all available width
+          height: 50.0, // adjust this value as needed
+          alignment: Alignment.centerLeft, // aligns the child to the left
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.black),
+            borderRadius: BorderRadius.circular(4.0),
+          ),
+          child: CheckboxListTile(
+            title: const Text("Ignore single unit traits"),
+            value: ignoreSingleUnitTraits,
+            onChanged: (newValue) {
+              setState(() {
+                ignoreSingleUnitTraits = newValue!;
+              });
+            },
+            controlAffinity: ListTileControlAffinity.trailing,
+          ),
         ),
       );
 
-  SizedBox buildSizedNumberField(
+  Padding buildSizedNumberField(
           TextEditingController controller, String label, int min, int max) =>
-      SizedBox(
+      Padding(
+        padding: listViewChildrenPadding,
         child: TextFormField(
           controller: controller,
-          decoration: InputDecoration(labelText: label),
+          decoration: InputDecoration(
+            labelText: label,
+            border: const OutlineInputBorder(),
+          ),
           keyboardType: TextInputType.number,
           inputFormatters: [
             FilteringTextInputFormatter.digitsOnly,
