@@ -1,7 +1,17 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:meta_insights_tft_frontend/views/composition_group_page.dart';
+import 'package:window_size/window_size.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+    setWindowTitle('Meta Insights TFT');
+    setWindowMaxSize(const Size(1920, 1080));
+    setWindowMinSize(const Size(700, 700));
+  }
   runApp(const MyApp());
 }
 
@@ -14,10 +24,10 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'TFT Meta Insights',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
         useMaterial3: true,
       ),
-      home: CompositionGroupPage(),
+      home: const CompositionGroupPage(),
     );
   }
 }
