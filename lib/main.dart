@@ -21,32 +21,3 @@ class MyApp extends StatelessWidget {
     );
   }
 }
-
-class HomePage extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-        appBar: AppBar(
-          title: Text('TFT Meta Insights'),
-        ),
-        body: TextInputWidget());
-  }
-}
-
-class TextInputWidget extends StatefulWidget {
-  const TextInputWidget({super.key});
-
-  @override
-  State<TextInputWidget> createState() => _TextInputWidgetState();
-}
-
-class _TextInputWidgetState extends State<TextInputWidget> {
-  final controller = TextEditingController(text: "13.21");
-
-  @override
-  Widget build(BuildContext context) {
-    return TextField(
-        controller: this.controller,
-        decoration: InputDecoration(labelText: "Current Patch"));
-  }
-}
