@@ -1,12 +1,13 @@
 part of widget_lib;
 
 class CompositionView extends StatelessWidget {
-  List<CompositionGroup> compositionGroups;
-  Map<String, String> icons;
-  String groupBy;
+  final List<CompositionGroup> compositionGroups;
+  final Map<String, String> icons;
+  final String groupBy;
 
-  CompositionView(
-      {required this.compositionGroups,
+  const CompositionView(
+      {super.key,
+      required this.compositionGroups,
       required this.icons,
       required this.groupBy});
 
@@ -19,8 +20,8 @@ class CompositionView extends StatelessWidget {
           rows: [
             for (var compositionGroup in compositionGroups)
               DataRow(cells: [
-                DataCell(Text('${compositionGroup.getCounter()}')),
-                DataCell(Text('${compositionGroup.getAvgPlacement()}')),
+                DataCell(Text(compositionGroup.getCounter())),
+                DataCell(Text(compositionGroup.getAvgPlacement())),
                 DataCell(CombinationRow(
                   composition: compositionGroup.getCombination(),
                   icons: icons,
@@ -37,15 +38,15 @@ class CompositionView extends StatelessWidget {
     switch (groupBy) {
       case "trait":
         return [
-          DataColumn(label: Text('Occurences')),
-          DataColumn(label: Text('Average Placement')),
-          DataColumn(label: Text('Traits'))
+          const DataColumn(label: Text('Occurences')),
+          const DataColumn(label: Text('Average Placement')),
+          const DataColumn(label: Text('Traits'))
         ];
       case "champion":
         return [
-          DataColumn(label: Text('Occurences')),
-          DataColumn(label: Text('Average Placement')),
-          DataColumn(label: Text('Champions'))
+          const DataColumn(label: Text('Occurences')),
+          const DataColumn(label: Text('Average Placement')),
+          const DataColumn(label: Text('Champions'))
         ];
     }
     return [];
