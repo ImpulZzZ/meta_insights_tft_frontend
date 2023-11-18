@@ -1,12 +1,13 @@
 part of widget_lib;
 
 class CompositionGroupTable extends StatefulWidget {
-  List<CompositionGroup>? compositionGroups;
-  Map<String, String>? icons;
-  String groupBy;
+  final List<CompositionGroup>? compositionGroups;
+  final Map<String, String>? icons;
+  final String groupBy;
 
-  CompositionGroupTable(
-      {required this.compositionGroups,
+  const CompositionGroupTable(
+      {super.key,
+      required this.compositionGroups,
       required this.icons,
       required this.groupBy});
 
