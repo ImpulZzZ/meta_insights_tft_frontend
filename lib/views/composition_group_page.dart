@@ -15,6 +15,8 @@ class _CompositionGroupPageState extends State<CompositionGroupPage> {
   List<CompositionGroup>? compositionGroups;
   Map<String, String>? icons;
   String groupBy = "trait";
+  bool ignoreSingleUnitTraits = false;
+  DateTime minDatetime = DateTime.now().subtract(const Duration(days: 14));
   var isLoaded = false;
 
   late final TextEditingController patchController;
@@ -23,6 +25,7 @@ class _CompositionGroupPageState extends State<CompositionGroupPage> {
   late final TextEditingController maxPlacementController;
   late final TextEditingController maxAvgPlacementController;
   late final TextEditingController minCounterController;
+  late final TextEditingController nTraitsController;
 
   @override
   void initState() {
@@ -34,6 +37,7 @@ class _CompositionGroupPageState extends State<CompositionGroupPage> {
     maxPlacementController = TextEditingController(text: "4");
     maxAvgPlacementController = TextEditingController(text: "4");
     minCounterController = TextEditingController(text: "4");
+    nTraitsController = TextEditingController(text: "");
     getData();
   }
 
@@ -45,6 +49,7 @@ class _CompositionGroupPageState extends State<CompositionGroupPage> {
     maxPlacementController.dispose();
     maxAvgPlacementController.dispose();
     minCounterController.dispose();
+    nTraitsController.dispose();
     super.dispose();
   }
 
@@ -53,14 +58,16 @@ class _CompositionGroupPageState extends State<CompositionGroupPage> {
     compositionGroups = await ApiRequestService().getCompositionGroups(
         groupBy,
         patchController.text,
-        null,
-        null,
+        nTraitsController.text.isEmpty
+            ? null
+            : int.parse(nTraitsController.text),
+        ignoreSingleUnitTraits,
         int.parse(maxPlacementController.text),
         int.parse(maxAvgPlacementController.text),
         int.parse(minCounterController.text),
         regionController.text,
         leagueController.text,
-        null);
+        minDatetime);
     icons = await ApiRequestService().getIconMap(groupBy);
     if (compositionGroups != null && icons != null) {
       setState(() {
@@ -108,6 +115,10 @@ class _CompositionGroupPageState extends State<CompositionGroupPage> {
           buildSizedTextField(patchController, "Patch"),
           buildSizedTextField(regionController, "Region"),
           buildSizedTextField(leagueController, "League"),
+          buildSelectDatetimeButton(),
+          buildSizedNumberField(
+              nTraitsController, "Trait combination size", 1, 7),
+          buildIgnoreSingleUnitTraitsCheckBox(),
           buildSizedNumberField(maxPlacementController, "Max placement", 1, 8),
           buildSizedNumberField(
               maxAvgPlacementController, "Max average placement", 1, 8),
@@ -115,6 +126,17 @@ class _CompositionGroupPageState extends State<CompositionGroupPage> {
           buildApplyButton()
         ],
       ));
+
+  SizedBox buildSelectDatetimeButton() => SizedBox(
+        child: TextButton.icon(
+          icon: const Icon(Icons.calendar_today),
+          label: Text(
+              "Matches since: ${minDatetime.year}-${minDatetime.month}-${minDatetime.day}"),
+          onPressed: () => setState(() {
+            showDateTimePicker(context: context);
+          }),
+        ),
+      );
 
   SizedBox buildApplyButton() => SizedBox(
         child: ElevatedButton(
@@ -135,6 +157,19 @@ class _CompositionGroupPageState extends State<CompositionGroupPage> {
         ),
       );
 
+  SizedBox buildIgnoreSingleUnitTraitsCheckBox() => SizedBox(
+        child: CheckboxListTile(
+          title: const Text("Ignore single unit traits"),
+          value: ignoreSingleUnitTraits,
+          onChanged: (newValue) {
+            setState(() {
+              ignoreSingleUnitTraits = newValue!;
+            });
+          },
+          controlAffinity: ListTileControlAffinity.trailing,
+        ),
+      );
+
   SizedBox buildSizedNumberField(
           TextEditingController controller, String label, int min, int max) =>
       SizedBox(
@@ -149,4 +184,36 @@ class _CompositionGroupPageState extends State<CompositionGroupPage> {
           ],
         ),
       );
+
+  void showDateTimePicker({
+    required BuildContext context,
+  }) async {
+    final DateTime? selectedDate = await showDatePicker(
+      context: context,
+      initialDate: minDatetime,
+      firstDate: minDatetime.subtract(const Duration(days: 365 * 100)),
+      lastDate: minDatetime.add(const Duration(days: 365 * 200)),
+    );
+
+    if (selectedDate == null) return null;
+
+    if (!context.mounted) return null;
+
+    final TimeOfDay? selectedTime = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(selectedDate),
+    );
+
+    setState(() {
+      minDatetime = selectedTime == null
+          ? selectedDate
+          : DateTime(
+              selectedDate.year,
+              selectedDate.month,
+              selectedDate.day,
+              selectedTime.hour,
+              selectedTime.minute,
+            );
+    });
+  }
 }
