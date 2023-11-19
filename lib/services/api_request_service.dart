@@ -29,16 +29,30 @@ class ApiRequestService {
       DateTime? minDatetime]) async {
     Map<String, String> queryParameters = {};
 
+    int? combinationSizeParam;
+    if (combinationSize != null && combinationSize.isNotEmpty) {
+      combinationSizeParam = int.parse(combinationSize);
+      if (groupBy == 'champion') {
+        combinationSizeParam = combinationSizeParam.clamp(1, 2);
+      } else {
+        combinationSizeParam = combinationSizeParam.clamp(1, 7);
+      }
+    }
+
+    int? maxPlacementParam = maxPlacement?.clamp(1, 8);
+    int? maxAvgPlacementParam = maxAvgPlacement?.clamp(1, 8);
+    int? minCounterParam = minCounter?.clamp(1, 999);
+
     addParametersIfNotNull(queryParameters, {
       'patch': patch,
-      'combination_size': combinationSize == "" ? null : combinationSize,
+      'combination_size': combinationSizeParam,
       'ignore_single_unit_traits': ignoreSingleUnitTraits,
       'region': region,
       'league': league,
       'min_datetime': minDatetime?.toIso8601String(),
-      'max_placement': maxPlacement,
-      'max_avg_placement': maxAvgPlacement,
-      'min_counter': minCounter,
+      'max_placement': maxPlacementParam,
+      'max_avg_placement': maxAvgPlacementParam,
+      'min_counter': minCounterParam,
     });
 
     var uri = Uri.http(
