@@ -16,7 +16,11 @@ class CompositionView extends StatelessWidget {
     return ListView(
       children: [
         DataTable(
-          columns: getTableHeaders(),
+          columns: [
+            getUniformHeaderColumn("Occurences"),
+            getUniformHeaderColumn("Average Placement"),
+            getUniformHeaderColumn("Combination"),
+          ],
           rows: [
             for (var compositionGroup in compositionGroups)
               DataRow(cells: [
@@ -40,23 +44,5 @@ class CompositionView extends StatelessWidget {
       labelText,
       style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
     ));
-  }
-
-  List<DataColumn> getTableHeaders() {
-    switch (groupBy) {
-      case "trait":
-        return [
-          getUniformHeaderColumn("Occurences"),
-          getUniformHeaderColumn("Average Placement"),
-          getUniformHeaderColumn("Traits"),
-        ];
-      case "champion":
-        return [
-          getUniformHeaderColumn("Occurences"),
-          getUniformHeaderColumn("Average Placement"),
-          getUniformHeaderColumn("Champions"),
-        ];
-    }
-    return [];
   }
 }
