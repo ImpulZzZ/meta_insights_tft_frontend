@@ -19,7 +19,7 @@ class ApiRequestService {
 
   Future<List<CompositionGroup>?> getCompositionGroups(String groupBy,
       [String? patch,
-      String? nTraits,
+      String? combinationSize,
       bool? ignoreSingleUnitTraits,
       int? maxPlacement,
       int? maxAvgPlacement,
@@ -31,7 +31,7 @@ class ApiRequestService {
 
     addParametersIfNotNull(queryParameters, {
       'patch': patch,
-      'n_traits': nTraits == "" ? null : nTraits,
+      'combination_size': combinationSize == "" ? null : combinationSize,
       'ignore_single_unit_traits': ignoreSingleUnitTraits,
       'region': region,
       'league': league,

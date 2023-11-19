@@ -13,7 +13,7 @@ final patchProvider = StateProvider((ref) => "13.22");
 final maxPlacementProvider = StateProvider((ref) => 4);
 final maxAvgPlacementProvider = StateProvider((ref) => 4);
 final minCounterProvider = StateProvider((ref) => 4);
-final nTraitsProvider = StateProvider((ref) => "");
+final combinationSizeProvider = StateProvider((ref) => "");
 final groupByProvider = StateProvider((ref) => "trait");
 final ignoreSingleUnitTraitsProvider = StateProvider((ref) => false);
 final minDateTimeProvider =
@@ -24,7 +24,7 @@ final compositionGroupProvider =
   return ref.read(apiServiceProvider).getCompositionGroups(
       ref.watch(groupByProvider),
       ref.watch(patchProvider),
-      ref.watch(nTraitsProvider),
+      ref.watch(combinationSizeProvider),
       ref.watch(ignoreSingleUnitTraitsProvider),
       ref.watch(maxPlacementProvider),
       ref.watch(maxAvgPlacementProvider),
@@ -100,6 +100,7 @@ class CompositionGroupPage extends ConsumerWidget {
           ExpansionTile(
             title: const Text("Combinations"),
             children: [
+              buildGroupByInput(ref),
               buildCombinationSizeInput(ref),
               buildIgnoreSingleUnitTraitsCheckBox(ref),
             ],
@@ -182,6 +183,22 @@ class CompositionGroupPage extends ConsumerWidget {
             selectedTime.minute,
           );
   }
+
+  Padding buildGroupByInput(WidgetRef ref) => Padding(
+      padding: listViewChildrenPadding,
+      child: DropdownButtonFormField<String>(
+          value: ref.watch(groupByProvider),
+          decoration: const InputDecoration(
+              border: OutlineInputBorder(), labelText: "League"),
+          items: <String>['trait', 'champion'].map((String value) {
+            return DropdownMenuItem<String>(
+              value: value,
+              child: Text(value),
+            );
+          }).toList(),
+          onChanged: (String? newValue) {
+            ref.read(groupByProvider.notifier).state = newValue!;
+          }));
 
   Padding buildPatchInput(WidgetRef ref) => Padding(
         padding: listViewChildrenPadding,
@@ -287,9 +304,9 @@ class CompositionGroupPage extends ConsumerWidget {
   Padding buildCombinationSizeInput(WidgetRef ref) => Padding(
         padding: listViewChildrenPadding,
         child: TextFormField(
-          initialValue: ref.watch(nTraitsProvider).toString(),
+          initialValue: ref.watch(combinationSizeProvider).toString(),
           onFieldSubmitted: (value) =>
-              ref.read(nTraitsProvider.notifier).state = value,
+              ref.read(combinationSizeProvider.notifier).state = value,
           decoration: const InputDecoration(
             labelText: "Combination size",
             border: OutlineInputBorder(),
