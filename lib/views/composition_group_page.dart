@@ -309,6 +309,7 @@ class CompositionGroupPage extends ConsumerWidget {
               ref.read(combinationSizeProvider.notifier).state = value,
           decoration: const InputDecoration(
             labelText: "Combination size",
+            helperText: "Traits: [1-7]  Champions [1-2]",
             border: OutlineInputBorder(),
           ),
           keyboardType: TextInputType.number,
