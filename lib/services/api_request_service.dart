@@ -2,6 +2,7 @@ import 'package:meta_insights_tft_frontend/models/composition.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:meta_insights_tft_frontend/models/composition_group.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class ApiRequestService {
   Future<List<Composition>?> getCompositions() async {
@@ -18,7 +19,7 @@ class ApiRequestService {
 
   Future<List<CompositionGroup>?> getCompositionGroups(String groupBy,
       [String? patch,
-      int? nTraits,
+      String? nTraits,
       bool? ignoreSingleUnitTraits,
       int? maxPlacement,
       int? maxAvgPlacement,
@@ -30,7 +31,7 @@ class ApiRequestService {
 
     addParametersIfNotNull(queryParameters, {
       'patch': patch,
-      'n_traits': nTraits,
+      'n_traits': nTraits == "" ? null : nTraits,
       'ignore_single_unit_traits': ignoreSingleUnitTraits,
       'region': region,
       'league': league,
@@ -73,3 +74,6 @@ class ApiRequestService {
     }
   }
 }
+
+final apiServiceProvider =
+    Provider<ApiRequestService>((ref) => ApiRequestService());
