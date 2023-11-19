@@ -1,109 +1,74 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meta_insights_tft_frontend/models/composition_group.dart';
 import 'package:meta_insights_tft_frontend/services/api_request_service.dart';
 import 'package:meta_insights_tft_frontend/widgets/widget_lib.dart';
 
-class CompositionGroupPage extends StatefulWidget {
+const listViewChildrenPadding = EdgeInsets.all(6);
+
+final regionProvider = StateProvider((ref) => "europe");
+final leagueProvider = StateProvider((ref) => "challenger");
+final patchProvider = StateProvider((ref) => "13.22");
+final maxPlacementProvider = StateProvider((ref) => 4);
+final maxAvgPlacementProvider = StateProvider((ref) => 4);
+final minCounterProvider = StateProvider((ref) => 4);
+final nTraitsProvider = StateProvider((ref) => "");
+final groupByProvider = StateProvider((ref) => "trait");
+final ignoreSingleUnitTraitsProvider = StateProvider((ref) => false);
+final minDateTimeProvider =
+    StateProvider((ref) => DateTime.now().subtract(const Duration(days: 14)));
+
+final compositionGroupProvider =
+    FutureProvider<List<CompositionGroup>?>((ref) async {
+  return ref.read(apiServiceProvider).getCompositionGroups(
+      ref.watch(groupByProvider),
+      ref.watch(patchProvider),
+      ref.watch(nTraitsProvider),
+      ref.watch(ignoreSingleUnitTraitsProvider),
+      ref.watch(maxPlacementProvider),
+      ref.watch(maxAvgPlacementProvider),
+      ref.watch(minCounterProvider),
+      ref.watch(regionProvider),
+      ref.watch(leagueProvider),
+      ref.watch(minDateTimeProvider));
+});
+
+final iconProvider = FutureProvider<Map<String, String>?>((ref) async {
+  return ref.read(apiServiceProvider).getIconMap(ref.watch(groupByProvider));
+});
+
+class CompositionGroupPage extends ConsumerWidget {
   const CompositionGroupPage({super.key});
 
   @override
-  State<CompositionGroupPage> createState() => _CompositionGroupPageState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final icons = ref.watch(iconProvider);
+    final compositionGroups = ref.watch(compositionGroupProvider);
 
-class _CompositionGroupPageState extends State<CompositionGroupPage> {
-  final listViewChildrenPadding = const EdgeInsets.all(6);
-  List<CompositionGroup>? compositionGroups;
-  Map<String, String>? icons;
-  String groupBy = "trait";
-  String headline = "";
-  bool ignoreSingleUnitTraits = false;
-  DateTime minDatetime = DateTime.now().subtract(const Duration(days: 14));
-  var isLoaded = false;
-
-  late String region;
-  late String league;
-  late final TextEditingController patchController;
-  late final TextEditingController maxPlacementController;
-  late final TextEditingController maxAvgPlacementController;
-  late final TextEditingController minCounterController;
-  late final TextEditingController nTraitsController;
-
-  @override
-  void initState() {
-    super.initState();
-    region = 'europe';
-    league = 'challenger';
-
-    patchController = TextEditingController(text: "13.22");
-    maxPlacementController = TextEditingController(text: "4");
-    maxAvgPlacementController = TextEditingController(text: "4");
-    minCounterController = TextEditingController(text: "4");
-    nTraitsController = TextEditingController(text: "");
-    getData();
-  }
-
-  @override
-  void dispose() {
-    patchController.dispose();
-    maxPlacementController.dispose();
-    maxAvgPlacementController.dispose();
-    minCounterController.dispose();
-    nTraitsController.dispose();
-    super.dispose();
-  }
-
-  getData() async {
-    isLoaded = false;
-    compositionGroups = await ApiRequestService().getCompositionGroups(
-        groupBy,
-        patchController.text,
-        nTraitsController.text.isEmpty
-            ? null
-            : int.parse(nTraitsController.text),
-        ignoreSingleUnitTraits,
-        int.parse(maxPlacementController.text),
-        int.parse(maxAvgPlacementController.text),
-        int.parse(minCounterController.text),
-        region,
-        league,
-        minDatetime);
-    icons = await ApiRequestService().getIconMap(groupBy);
-    if (compositionGroups != null && icons != null) {
-      setState(() {
-        isLoaded = true;
-        headline =
-            "Played ${groupBy}s in $region $league on patch ${patchController.text}";
-      });
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(headline),
+        title: Text(
+            "Played ${ref.watch(groupByProvider)}s in ${ref.watch(regionProvider)} ${ref.watch(leagueProvider)} on patch ${ref.watch(patchProvider)}"),
       ),
-      body: Center(
-        child: isLoaded
-            ? Column(
-                children: [
-                  Flexible(
-                    child: CompositionGroupTable(
-                      compositionGroups: compositionGroups!,
-                      icons: icons!,
-                      groupBy: groupBy,
-                    ),
-                  ),
-                ],
-              )
-            : const CircularProgressIndicator(),
+      body: icons.when(
+        data: (icons) => compositionGroups.when(
+          data: (compositionGroupList) => CompositionView(
+            compositionGroups: compositionGroupList!,
+            icons: icons!,
+            groupBy: ref.watch(groupByProvider),
+          ),
+          loading: () => const CircularProgressIndicator(),
+          error: (error, stackTrace) => Text(error.toString()),
+        ),
+        loading: () => const CircularProgressIndicator(),
+        error: (error, stackTrace) => Text(error.toString()),
       ),
-      endDrawer: buildFilterDrawer(),
+      endDrawer: buildFilterDrawer(context, ref),
     );
   }
 
-  Drawer buildFilterDrawer() => Drawer(
+  Drawer buildFilterDrawer(BuildContext context, WidgetRef ref) => Drawer(
           child: ListView(
         padding: EdgeInsets.zero,
         children: [
@@ -117,118 +82,32 @@ class _CompositionGroupPageState extends State<CompositionGroupPage> {
           ExpansionTile(
             title: const Text("General"),
             children: [
-              buildSizedTextField(patchController, "Patch"),
-              buildRegionDropdownField(),
-              buildLeagueDropdownField(),
-              buildSelectDatetimeButton(),
+              buildPatchTextField(ref),
+              buildRegionDropdownField(ref),
+              buildLeagueDropdownField(ref),
+              buildSelectDatetimeButton(context, ref),
             ],
           ),
           ExpansionTile(
             title: const Text("Performance"),
             initiallyExpanded: true,
             children: [
-              buildSizedNumberField(
-                  maxPlacementController, "Max placement", 1, 8),
-              buildSizedNumberField(
-                  maxAvgPlacementController, "Max average placement", 1, 8),
-              buildSizedNumberField(
-                  minCounterController, "Min occurences", 0, 999),
+              buildMaxPlacementInput(ref),
+              buildMaxAvgPlacementInput(ref),
+              buildMinCounterInput(ref),
             ],
           ),
           ExpansionTile(
             title: const Text("Combinations"),
             children: [
-              buildSizedNumberField(
-                  nTraitsController, "Trait combination size", 1, 7),
-              buildIgnoreSingleUnitTraitsCheckBox(),
+              buildCombinationSizeInput(ref),
+              buildIgnoreSingleUnitTraitsCheckBox(ref),
             ],
           ),
-          buildApplyButton()
         ],
       ));
 
-  Padding buildSelectDatetimeButton() => Padding(
-        padding: listViewChildrenPadding,
-        child: Container(
-          width: double.infinity, // takes all available width
-          height: 50.0, // adjust this value as needed
-          alignment: Alignment.centerLeft, // aligns the child to the left
-          decoration: BoxDecoration(
-            border: Border.all(color: Colors.black),
-            borderRadius: BorderRadius.circular(4.0),
-          ),
-          child: TextButton.icon(
-            icon: const Icon(Icons.calendar_today),
-            label: Text(
-                "Matches since: ${minDatetime.year}-${minDatetime.month}-${minDatetime.day}"),
-            onPressed: () => setState(() {
-              showDateTimePicker(context: context);
-            }),
-          ),
-        ),
-      );
-
-  Padding buildApplyButton() => Padding(
-        padding: listViewChildrenPadding,
-        child: ElevatedButton(
-          child: const Text("Apply filters"),
-          onPressed: () => setState(() {
-            getData();
-            Navigator.pop(context);
-          }),
-        ),
-      );
-
-  Padding buildSizedTextField(TextEditingController controller, String label) =>
-      Padding(
-        padding: listViewChildrenPadding,
-        child: TextField(
-          controller: controller,
-          decoration: InputDecoration(
-            labelText: label,
-            border: const OutlineInputBorder(),
-          ),
-        ),
-      );
-
-  Padding buildRegionDropdownField() => Padding(
-      padding: listViewChildrenPadding,
-      child: DropdownButtonFormField<String>(
-          value: region,
-          decoration: const InputDecoration(
-              border: OutlineInputBorder(), labelText: "Region"),
-          items: <String>['europe', 'korea'].map((String value) {
-            return DropdownMenuItem<String>(
-              value: value,
-              child: Text(value),
-            );
-          }).toList(),
-          onChanged: (String? newValue) {
-            setState(() {
-              region = newValue!;
-            });
-          }));
-
-  Padding buildLeagueDropdownField() => Padding(
-      padding: listViewChildrenPadding,
-      child: DropdownButtonFormField<String>(
-          value: league,
-          decoration: const InputDecoration(
-              border: OutlineInputBorder(), labelText: "League"),
-          items: <String>['challenger', 'grandmaster', 'master']
-              .map((String value) {
-            return DropdownMenuItem<String>(
-              value: value,
-              child: Text(value),
-            );
-          }).toList(),
-          onChanged: (String? newValue) {
-            setState(() {
-              league = newValue!;
-            });
-          }));
-
-  Padding buildIgnoreSingleUnitTraitsCheckBox() => Padding(
+  Padding buildIgnoreSingleUnitTraitsCheckBox(WidgetRef ref) => Padding(
         padding: listViewChildrenPadding,
         child: Container(
           width: double.infinity, // takes all available width
@@ -240,44 +119,48 @@ class _CompositionGroupPageState extends State<CompositionGroupPage> {
           ),
           child: CheckboxListTile(
             title: const Text("Ignore single unit traits"),
-            value: ignoreSingleUnitTraits,
+            value: ref.watch(ignoreSingleUnitTraitsProvider),
             onChanged: (newValue) {
-              setState(() {
-                ignoreSingleUnitTraits = newValue!;
-              });
+              ref.read(ignoreSingleUnitTraitsProvider.notifier).state =
+                  newValue!;
             },
             controlAffinity: ListTileControlAffinity.trailing,
           ),
         ),
       );
 
-  Padding buildSizedNumberField(
-          TextEditingController controller, String label, int min, int max) =>
-      Padding(
-        padding: listViewChildrenPadding,
-        child: TextFormField(
-          controller: controller,
-          decoration: InputDecoration(
-            labelText: label,
-            border: const OutlineInputBorder(),
-          ),
-          keyboardType: TextInputType.number,
-          inputFormatters: [
-            FilteringTextInputFormatter.digitsOnly,
-            FilteringTextInputFormatter.allow(
-                RegExp('[${min.toString()}-${max.toString()}]'))
-          ],
+  Padding buildSelectDatetimeButton(BuildContext context, WidgetRef ref) {
+    DateTime minDatetime = ref.watch(minDateTimeProvider);
+    return Padding(
+      padding: listViewChildrenPadding,
+      child: Container(
+        width: double.infinity, // takes all available width
+        height: 50.0, // adjust this value as needed
+        alignment: Alignment.centerLeft, // aligns the child to the left
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.black),
+          borderRadius: BorderRadius.circular(4.0),
         ),
-      );
+        child: TextButton.icon(
+          icon: const Icon(Icons.calendar_today),
+          label: Text(
+              "Matches since: ${minDatetime.year}-${minDatetime.month}-${minDatetime.day}"),
+          onPressed: () => showDateTimePicker(context: context, ref: ref),
+        ),
+      ),
+    );
+  }
 
-  void showDateTimePicker({
-    required BuildContext context,
-  }) async {
+  void showDateTimePicker(
+      {required BuildContext context, required WidgetRef ref}) async {
     final DateTime? selectedDate = await showDatePicker(
       context: context,
-      initialDate: minDatetime,
-      firstDate: minDatetime.subtract(const Duration(days: 365 * 100)),
-      lastDate: minDatetime.add(const Duration(days: 365 * 200)),
+      initialDate: ref.watch(minDateTimeProvider),
+      firstDate: ref
+          .watch(minDateTimeProvider)
+          .subtract(const Duration(days: 365 * 100)),
+      lastDate:
+          ref.watch(minDateTimeProvider).add(const Duration(days: 365 * 200)),
     );
 
     if (selectedDate == null) return null;
@@ -289,16 +172,133 @@ class _CompositionGroupPageState extends State<CompositionGroupPage> {
       initialTime: TimeOfDay.fromDateTime(selectedDate),
     );
 
-    setState(() {
-      minDatetime = selectedTime == null
-          ? selectedDate
-          : DateTime(
-              selectedDate.year,
-              selectedDate.month,
-              selectedDate.day,
-              selectedTime.hour,
-              selectedTime.minute,
-            );
-    });
+    ref.read(minDateTimeProvider.notifier).state = selectedTime == null
+        ? selectedDate
+        : DateTime(
+            selectedDate.year,
+            selectedDate.month,
+            selectedDate.day,
+            selectedTime.hour,
+            selectedTime.minute,
+          );
   }
+
+  Padding buildPatchTextField(WidgetRef ref) => Padding(
+        padding: listViewChildrenPadding,
+        child: TextFormField(
+          onFieldSubmitted: (value) =>
+              ref.read(patchProvider.notifier).state = value,
+          initialValue: ref.watch(patchProvider),
+          decoration: const InputDecoration(
+            labelText: "Patch",
+            border: OutlineInputBorder(),
+          ),
+        ),
+      );
+
+  Padding buildRegionDropdownField(WidgetRef ref) => Padding(
+      padding: listViewChildrenPadding,
+      child: DropdownButtonFormField<String>(
+          value: ref.watch(regionProvider),
+          decoration: const InputDecoration(
+              border: OutlineInputBorder(), labelText: "Region"),
+          items: <String>['europe', 'korea'].map((String value) {
+            return DropdownMenuItem<String>(
+              value: value,
+              child: Text(value),
+            );
+          }).toList(),
+          onChanged: (String? newValue) {
+            ref.read(regionProvider.notifier).state = newValue!;
+          }));
+
+  Padding buildLeagueDropdownField(WidgetRef ref) => Padding(
+      padding: listViewChildrenPadding,
+      child: DropdownButtonFormField<String>(
+          value: ref.watch(leagueProvider),
+          decoration: const InputDecoration(
+              border: OutlineInputBorder(), labelText: "League"),
+          items: <String>['challenger', 'grandmaster', 'master']
+              .map((String value) {
+            return DropdownMenuItem<String>(
+              value: value,
+              child: Text(value),
+            );
+          }).toList(),
+          onChanged: (String? newValue) {
+            ref.read(leagueProvider.notifier).state = newValue!;
+          }));
+
+  Padding buildMaxPlacementInput(WidgetRef ref) => Padding(
+        padding: listViewChildrenPadding,
+        child: TextFormField(
+          initialValue: ref.watch(maxPlacementProvider).toString(),
+          onFieldSubmitted: (value) =>
+              ref.read(maxPlacementProvider.notifier).state = int.parse(value),
+          decoration: const InputDecoration(
+            labelText: "Max placement",
+            border: OutlineInputBorder(),
+          ),
+          keyboardType: TextInputType.number,
+          inputFormatters: [
+            FilteringTextInputFormatter.digitsOnly,
+            FilteringTextInputFormatter.allow(RegExp('[1-8]'))
+          ],
+        ),
+      );
+
+  Padding buildMaxAvgPlacementInput(WidgetRef ref) => Padding(
+        padding: listViewChildrenPadding,
+        child: TextFormField(
+          initialValue: ref.watch(maxAvgPlacementProvider).toString(),
+          onFieldSubmitted: (value) => ref
+              .read(maxAvgPlacementProvider.notifier)
+              .state = int.parse(value),
+          decoration: const InputDecoration(
+            labelText: "Max Avg placement",
+            border: OutlineInputBorder(),
+          ),
+          keyboardType: TextInputType.number,
+          inputFormatters: [
+            FilteringTextInputFormatter.digitsOnly,
+            FilteringTextInputFormatter.allow(RegExp('[1-8]'))
+          ],
+        ),
+      );
+
+  Padding buildMinCounterInput(WidgetRef ref) => Padding(
+        padding: listViewChildrenPadding,
+        child: TextFormField(
+          initialValue: ref.watch(minCounterProvider).toString(),
+          onFieldSubmitted: (value) =>
+              ref.read(minCounterProvider.notifier).state = int.parse(value),
+          decoration: const InputDecoration(
+            labelText: "Min occurences",
+            border: OutlineInputBorder(),
+          ),
+          keyboardType: TextInputType.number,
+          inputFormatters: [
+            FilteringTextInputFormatter.digitsOnly,
+            FilteringTextInputFormatter.allow(RegExp('[0-9]'))
+          ],
+        ),
+      );
+
+  Padding buildCombinationSizeInput(WidgetRef ref) => Padding(
+        padding: listViewChildrenPadding,
+        child: TextFormField(
+          initialValue: ref.watch(nTraitsProvider).toString(),
+          onFieldSubmitted: (value) =>
+              ref.read(nTraitsProvider.notifier).state = value,
+          decoration: const InputDecoration(
+            labelText: "Combination size",
+            border: OutlineInputBorder(),
+          ),
+          keyboardType: TextInputType.number,
+          inputFormatters: [
+            FilteringTextInputFormatter.digitsOnly,
+            FilteringTextInputFormatter.allow(RegExp('[1-7]'))
+          ],
+        ),
+      );
 }
