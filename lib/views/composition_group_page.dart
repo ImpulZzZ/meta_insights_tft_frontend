@@ -82,9 +82,9 @@ class CompositionGroupPage extends ConsumerWidget {
           ExpansionTile(
             title: const Text("General"),
             children: [
-              buildPatchTextField(ref),
-              buildRegionDropdownField(ref),
-              buildLeagueDropdownField(ref),
+              buildPatchInput(ref),
+              buildRegionInput(ref),
+              buildLeagueInput(ref),
               buildSelectDatetimeButton(context, ref),
             ],
           ),
@@ -183,7 +183,7 @@ class CompositionGroupPage extends ConsumerWidget {
           );
   }
 
-  Padding buildPatchTextField(WidgetRef ref) => Padding(
+  Padding buildPatchInput(WidgetRef ref) => Padding(
         padding: listViewChildrenPadding,
         child: TextFormField(
           onFieldSubmitted: (value) =>
@@ -196,7 +196,7 @@ class CompositionGroupPage extends ConsumerWidget {
         ),
       );
 
-  Padding buildRegionDropdownField(WidgetRef ref) => Padding(
+  Padding buildRegionInput(WidgetRef ref) => Padding(
       padding: listViewChildrenPadding,
       child: DropdownButtonFormField<String>(
           value: ref.watch(regionProvider),
@@ -212,7 +212,7 @@ class CompositionGroupPage extends ConsumerWidget {
             ref.read(regionProvider.notifier).state = newValue!;
           }));
 
-  Padding buildLeagueDropdownField(WidgetRef ref) => Padding(
+  Padding buildLeagueInput(WidgetRef ref) => Padding(
       padding: listViewChildrenPadding,
       child: DropdownButtonFormField<String>(
           value: ref.watch(leagueProvider),
