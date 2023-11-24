@@ -9,7 +9,7 @@ const listViewChildrenPadding = EdgeInsets.all(6);
 
 final regionProvider = StateProvider((ref) => "europe");
 final leagueProvider = StateProvider((ref) => "challenger");
-final patchProvider = StateProvider((ref) => "13.22");
+final patchProvider = StateProvider((ref) => "13.23");
 final maxPlacementProvider = StateProvider((ref) => 4);
 final maxAvgPlacementProvider = StateProvider((ref) => 4);
 final minCounterProvider = StateProvider((ref) => 4);
