@@ -11,7 +11,7 @@ void main() {
   if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
     setWindowTitle('Meta Insights TFT');
     setWindowMaxSize(const Size(1920, 1080));
-    setWindowMinSize(const Size(700, 700));
+    setWindowMinSize(const Size(1200, 800));
   }
   runApp(const ProviderScope(child: MyApp()));
 }
