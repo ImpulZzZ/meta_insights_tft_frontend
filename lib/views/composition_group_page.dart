@@ -97,35 +97,45 @@ class CompositionGroupPage extends ConsumerWidget {
               child: Text("Filters"),
             ),
           ),
-          ExpansionTile(
-            title: const Text("General"),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.start,
             children: [
-              buildPatchInput(ref),
-              buildRegionInput(ref),
-              buildLeagueInput(ref),
-              buildSelectDatetimeButton(context, ref),
+              TextButton.icon(
+                icon: const Icon(Icons.groups),
+                label: const Text("Champions"),
+                onPressed: () =>
+                    ref.read(groupByProvider.notifier).state = "champion",
+              ),
             ],
           ),
-          ExpansionTile(
-            title: const Text("Performance"),
-            initiallyExpanded: true,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.start,
             children: [
-              buildMaxPlacementInput(ref),
-              buildMaxAvgPlacementInput(ref),
-              buildMinCounterInput(ref),
+              TextButton.icon(
+                icon: const Icon(Icons.interests),
+                label: const Text("Traits"),
+                onPressed: () =>
+                    ref.read(groupByProvider.notifier).state = "trait",
+              ),
             ],
           ),
-          ExpansionTile(
-            title: const Text("Combinations"),
-            children: [
-              buildGroupByInput(ref),
-              buildCombinationSizeInput(ref),
-              buildIgnoreSingleUnitTraitsCheckBox(ref),
-            ],
-          ),
+          buildMaxPlacementInput(ref),
+          buildMaxAvgPlacementInput(ref),
+          buildMinCounterInput(ref),
+          buildCombinationSizeInput(ref),
+          buildIgnoreSingleUnitTraitsCheckBox(ref),
           buildChampionFilter(ref),
           buildTraitFilter(ref),
           buildItemFilter(ref),
+          ExpansionTile(
+            title: const Text("General"),
+            children: [
+              buildSelectDatetimeButton(context, ref),
+              buildPatchInput(ref),
+              //buildRegionInput(ref),
+              buildLeagueInput(ref),
+            ],
+          ),
         ],
       ));
 
@@ -159,14 +169,10 @@ class CompositionGroupPage extends ConsumerWidget {
         width: double.infinity, // takes all available width
         height: 50.0, // adjust this value as needed
         alignment: Alignment.centerLeft, // aligns the child to the left
-        decoration: BoxDecoration(
-          border: Border.all(color: Colors.black),
-          borderRadius: BorderRadius.circular(4.0),
-        ),
         child: TextButton.icon(
           icon: const Icon(Icons.calendar_today),
           label: Text(
-              "Matches since: ${minDatetime.year}-${minDatetime.month}-${minDatetime.day}"),
+              "Matches since ${minDatetime.day}-${minDatetime.month}-${minDatetime.year}"),
           onPressed: () => showDateTimePicker(context: context, ref: ref),
         ),
       ),
@@ -204,22 +210,6 @@ class CompositionGroupPage extends ConsumerWidget {
             selectedTime.minute,
           );
   }
-
-  Padding buildGroupByInput(WidgetRef ref) => Padding(
-      padding: listViewChildrenPadding,
-      child: DropdownButtonFormField<String>(
-          value: ref.watch(groupByProvider),
-          decoration: const InputDecoration(
-              border: OutlineInputBorder(), labelText: "Group by"),
-          items: <String>['trait', 'champion'].map((String value) {
-            return DropdownMenuItem<String>(
-              value: value,
-              child: Text(value),
-            );
-          }).toList(),
-          onChanged: (String? newValue) {
-            ref.read(groupByProvider.notifier).state = newValue!;
-          }));
 
   Padding buildChampionFilter(WidgetRef ref) {
     final championNamesAsyncValue = ref.watch(championNameProvider);
