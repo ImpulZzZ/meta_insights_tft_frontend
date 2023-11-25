@@ -26,6 +26,9 @@ class ApiRequestService {
       int? minCounter,
       String? region,
       String? league,
+      String? championName,
+      String? traitName,
+      String? itemName,
       DateTime? minDatetime]) async {
     Map<String, String> queryParameters = {};
 
@@ -55,6 +58,17 @@ class ApiRequestService {
       'min_counter': minCounterParam,
     });
 
+    if (groupBy == 'champion') {
+      addParametersIfNotNull(queryParameters, {
+        'champion_name': championName,
+      });
+    }
+    if (groupBy == 'trait') {
+      addParametersIfNotNull(queryParameters, {
+        'trait_name': traitName,
+      });
+    }
+
     var uri = Uri.http(
         'localhost:8000', '/compositionGroup/by-$groupBy', queryParameters);
     var response = await http.get(uri);
@@ -70,7 +84,7 @@ class ApiRequestService {
   void addParametersIfNotNull(
       Map<String, String?> queryParameters, Map<String, dynamic> parameters) {
     parameters.forEach((key, value) {
-      if (value != null) {
+      if (value != null && value != '') {
         queryParameters[key] = value.toString();
       }
     });
