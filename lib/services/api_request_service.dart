@@ -87,6 +87,19 @@ class ApiRequestService {
       return null;
     }
   }
+
+  Future<List<String>?> getDisplayNames(String table) async {
+    var client = http.Client();
+    var url = Uri.parse('http://localhost:8000/$table');
+    var response = await client.get(url);
+    if (response.statusCode == 200) {
+      return (json.decode(response.body) as List<dynamic>)
+          .map((dynamic value) => value.toString())
+          .toList();
+    } else {
+      return null;
+    }
+  }
 }
 
 final apiServiceProvider =
