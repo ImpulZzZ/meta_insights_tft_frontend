@@ -16,6 +16,8 @@ class CompositionView extends StatelessWidget {
     return ListView(
       children: [
         DataTable(
+          dataRowMinHeight: 100,
+          dataRowMaxHeight: 100,
           columns: [
             getUniformHeaderColumn("Occurences"),
             getUniformHeaderColumn("Average Placement"),
@@ -24,7 +26,9 @@ class CompositionView extends StatelessWidget {
           rows: [
             for (var compositionGroup in compositionGroups)
               DataRow(cells: [
-                DataCell(Text(compositionGroup.getCounter())),
+                DataCell(
+                  Text(compositionGroup.getCounter()),
+                ),
                 DataCell(Text(compositionGroup.getAvgPlacement())),
                 DataCell(CombinationRow(
                   composition: compositionGroup.getCombination(),
