@@ -7,6 +7,9 @@ import 'package:meta_insights_tft_frontend/widgets/widget_lib.dart';
 
 const listViewChildrenPadding = EdgeInsets.all(6);
 
+final championFilterProvider = StateProvider((ref) => "");
+final traitFilterProvider = StateProvider((ref) => "");
+final itemFilterProvider = StateProvider((ref) => "");
 final regionProvider = StateProvider((ref) => "europe");
 final leagueProvider = StateProvider((ref) => "challenger");
 final patchProvider = StateProvider((ref) => "13.23");
@@ -31,11 +34,26 @@ final compositionGroupProvider =
       ref.watch(minCounterProvider),
       ref.watch(regionProvider),
       ref.watch(leagueProvider),
+      ref.watch(championFilterProvider),
+      ref.watch(traitFilterProvider),
+      ref.watch(itemFilterProvider),
       ref.watch(minDateTimeProvider));
 });
 
 final iconProvider = FutureProvider<Map<String, String>?>((ref) async {
   return ref.read(apiServiceProvider).getIconMap(ref.watch(groupByProvider));
+});
+
+final championNameProvider = FutureProvider<List<String>?>((ref) async {
+  return ref.read(apiServiceProvider).getDisplayNames('champion');
+});
+
+final traitNameProvider = FutureProvider<List<String>?>((ref) async {
+  return ref.read(apiServiceProvider).getDisplayNames('trait');
+});
+
+final itemNameProvider = FutureProvider<List<String>?>((ref) async {
+  return ref.read(apiServiceProvider).getDisplayNames('item');
 });
 
 class CompositionGroupPage extends ConsumerWidget {
@@ -64,7 +82,7 @@ class CompositionGroupPage extends ConsumerWidget {
         loading: () => const CircularProgressIndicator(),
         error: (error, stackTrace) => Text(error.toString()),
       ),
-      endDrawer: buildFilterDrawer(context, ref),
+      drawer: buildFilterDrawer(context, ref),
     );
   }
 
@@ -105,6 +123,9 @@ class CompositionGroupPage extends ConsumerWidget {
               buildIgnoreSingleUnitTraitsCheckBox(ref),
             ],
           ),
+          buildChampionFilter(ref),
+          buildTraitFilter(ref),
+          buildItemFilter(ref),
         ],
       ));
 
@@ -189,7 +210,7 @@ class CompositionGroupPage extends ConsumerWidget {
       child: DropdownButtonFormField<String>(
           value: ref.watch(groupByProvider),
           decoration: const InputDecoration(
-              border: OutlineInputBorder(), labelText: "League"),
+              border: OutlineInputBorder(), labelText: "Group by"),
           items: <String>['trait', 'champion'].map((String value) {
             return DropdownMenuItem<String>(
               value: value,
@@ -199,6 +220,93 @@ class CompositionGroupPage extends ConsumerWidget {
           onChanged: (String? newValue) {
             ref.read(groupByProvider.notifier).state = newValue!;
           }));
+
+  Padding buildChampionFilter(WidgetRef ref) {
+    final championNamesAsyncValue = ref.watch(championNameProvider);
+
+    return Padding(
+        padding: listViewChildrenPadding,
+        child: championNamesAsyncValue.when(
+          data: (List<String>? championNames) => championNames == null
+              ? Container() // Return an empty Container (or any other widget) when championNames is null
+              : DropdownButtonFormField<String>(
+                  value: ref.watch(championFilterProvider),
+                  decoration: const InputDecoration(
+                    border: OutlineInputBorder(),
+                    labelText: "Filter by Champion",
+                  ),
+                  items: championNames.map((String value) {
+                    return DropdownMenuItem<String>(
+                      value: value,
+                      child: Text(value),
+                    );
+                  }).toList(),
+                  onChanged: (String? newValue) {
+                    ref.read(championFilterProvider.notifier).state = newValue!;
+                  },
+                ),
+          loading: () => const CircularProgressIndicator(),
+          error: (error, stackTrace) => Text(error.toString()),
+        ));
+  }
+
+  Padding buildItemFilter(WidgetRef ref) {
+    final itemNamesAsyncValue = ref.watch(itemNameProvider);
+
+    return Padding(
+        padding: listViewChildrenPadding,
+        child: itemNamesAsyncValue.when(
+          data: (List<String>? itemNames) => itemNames == null
+              ? Container() // Return an empty Container (or any other widget) when championNames is null
+              : DropdownButtonFormField<String>(
+                  value: ref.watch(itemFilterProvider),
+                  decoration: const InputDecoration(
+                    border: OutlineInputBorder(),
+                    labelText: "Filter by Item",
+                  ),
+                  items: itemNames.map((String value) {
+                    return DropdownMenuItem<String>(
+                      value: value,
+                      child: Text(value),
+                    );
+                  }).toList(),
+                  onChanged: (String? newValue) {
+                    ref.read(itemFilterProvider.notifier).state = newValue!;
+                  },
+                ),
+          loading: () => const CircularProgressIndicator(),
+          error: (error, stackTrace) => Text(error.toString()),
+        ));
+  }
+
+  Padding buildTraitFilter(WidgetRef ref) {
+    final traitNamesAsyncValue = ref.watch(traitNameProvider);
+
+    return Padding(
+        padding: listViewChildrenPadding,
+        child: traitNamesAsyncValue.when(
+          data: (List<String>? traitNames) => traitNames == null
+              ? Container()
+              : DropdownButtonFormField<String>(
+                  value: ref.watch(traitFilterProvider),
+                  decoration: const InputDecoration(
+                    border: OutlineInputBorder(),
+                    labelText: "Filter by Trait",
+                  ),
+                  items: traitNames.map((String value) {
+                    return DropdownMenuItem<String>(
+                      value: value,
+                      child: Text(value),
+                    );
+                  }).toList(),
+                  onChanged: (String? newValue) {
+                    ref.read(traitFilterProvider.notifier).state = newValue!;
+                  },
+                ),
+          loading: () => const CircularProgressIndicator(),
+          error: (error, stackTrace) => Text(error.toString()),
+        ));
+  }
 
   Padding buildPatchInput(WidgetRef ref) => Padding(
         padding: listViewChildrenPadding,
