@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meta_insights_tft_frontend/models/composition_group.dart';
 import 'package:meta_insights_tft_frontend/services/api_request_service.dart';
 import 'package:meta_insights_tft_frontend/widgets/widget_lib.dart';
 
-const listViewChildrenPadding = EdgeInsets.all(6);
+const listViewChildrenPadding = EdgeInsets.all(4);
 
 final championFilterProvider = StateProvider((ref) => "");
 final traitFilterProvider = StateProvider((ref) => "");
@@ -15,8 +14,8 @@ final leagueProvider = StateProvider((ref) => "challenger");
 final patchProvider = StateProvider((ref) => "13.23");
 final maxPlacementProvider = StateProvider((ref) => 4);
 final maxAvgPlacementProvider = StateProvider((ref) => 4);
-final minCounterProvider = StateProvider((ref) => 4);
-final combinationSizeProvider = StateProvider((ref) => "");
+final minCounterProvider = StateProvider((ref) => 5);
+final combinationSizeProvider = StateProvider((ref) => 0);
 final groupByProvider = StateProvider((ref) => "trait");
 final ignoreSingleUnitTraitsProvider = StateProvider((ref) => false);
 final minDateTimeProvider =
@@ -43,15 +42,12 @@ final compositionGroupProvider =
 final iconProvider = FutureProvider<Map<String, String>?>((ref) async {
   return ref.read(apiServiceProvider).getIconMap(ref.watch(groupByProvider));
 });
-
 final championNameProvider = FutureProvider<List<String>?>((ref) async {
   return ref.read(apiServiceProvider).getDisplayNames('champion');
 });
-
 final traitNameProvider = FutureProvider<List<String>?>((ref) async {
   return ref.read(apiServiceProvider).getDisplayNames('trait');
 });
-
 final itemNameProvider = FutureProvider<List<String>?>((ref) async {
   return ref.read(apiServiceProvider).getDisplayNames('item');
 });
@@ -86,96 +82,213 @@ class CompositionGroupPage extends ConsumerWidget {
     );
   }
 
-  Drawer buildFilterDrawer(BuildContext context, WidgetRef ref) => Drawer(
-          child: ListView(
-        padding: EdgeInsets.zero,
-        children: [
-          const SizedBox(
-            height: 64,
-            child: DrawerHeader(
-              decoration: BoxDecoration(color: Colors.blue),
-              child: Text("Filters"),
-            ),
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              TextButton.icon(
-                icon: const Icon(Icons.groups),
-                label: const Text("Champions"),
-                onPressed: () =>
-                    ref.read(groupByProvider.notifier).state = "champion",
-              ),
-            ],
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              TextButton.icon(
-                icon: const Icon(Icons.interests),
-                label: const Text("Traits"),
-                onPressed: () =>
-                    ref.read(groupByProvider.notifier).state = "trait",
-              ),
-            ],
-          ),
-          buildMaxPlacementInput(ref),
-          buildMaxAvgPlacementInput(ref),
-          buildMinCounterInput(ref),
-          buildCombinationSizeInput(ref),
-          buildIgnoreSingleUnitTraitsCheckBox(ref),
-          buildChampionFilter(ref),
-          buildTraitFilter(ref),
-          buildItemFilter(ref),
-          ExpansionTile(
-            title: const Text("General"),
-            children: [
-              buildSelectDatetimeButton(context, ref),
-              buildPatchInput(ref),
-              //buildRegionInput(ref),
-              buildLeagueInput(ref),
-            ],
-          ),
-        ],
-      ));
-
-  Padding buildIgnoreSingleUnitTraitsCheckBox(WidgetRef ref) => Padding(
-        padding: listViewChildrenPadding,
-        child: Container(
-          width: double.infinity, // takes all available width
-          height: 50.0, // adjust this value as needed
-          alignment: Alignment.centerLeft, // aligns the child to the left
-          decoration: BoxDecoration(
-            border: Border.all(color: Colors.black),
-            borderRadius: BorderRadius.circular(4.0),
-          ),
-          child: CheckboxListTile(
-            title: const Text("Ignore single unit traits"),
-            value: ref.watch(ignoreSingleUnitTraitsProvider),
-            onChanged: (newValue) {
-              ref.read(ignoreSingleUnitTraitsProvider.notifier).state =
-                  newValue!;
-            },
-            controlAffinity: ListTileControlAffinity.trailing,
+  Drawer buildFilterDrawer(BuildContext context, WidgetRef ref) {
+    const SizedBox space = SizedBox(height: 10);
+    return Drawer(
+        child: ListView(
+      padding: EdgeInsets.zero,
+      children: [
+        const SizedBox(
+          height: 64,
+          child: DrawerHeader(
+            decoration: BoxDecoration(color: Colors.blue),
+            child: Text("Filters"),
           ),
         ),
-      );
+        Padding(
+          padding: listViewChildrenPadding,
+          child: Column(
+            children: [
+              buildPatchInput(ref),
+              Row(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      TextButton(
+                        child: Text("Europe",
+                            style: TextStyle(
+                                fontSize: 12,
+                                decoration:
+                                    ref.watch(regionProvider) == "europe"
+                                        ? TextDecoration.underline
+                                        : TextDecoration.none)),
+                        onPressed: () =>
+                            ref.read(regionProvider.notifier).state = 'europe',
+                      ),
+                    ],
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      TextButton(
+                        child: Text(
+                          "Korea",
+                          style: TextStyle(
+                              fontSize: 12,
+                              decoration: ref.watch(regionProvider) == "korea"
+                                  ? TextDecoration.underline
+                                  : TextDecoration.none),
+                        ),
+                        onPressed: () =>
+                            ref.read(regionProvider.notifier).state = 'korea',
+                      ),
+                    ],
+                  ),
+                  buildSelectDatetimeButton(context, ref),
+                ],
+              ),
+              Row(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      TextButton(
+                        child: Text("Challenger",
+                            style: TextStyle(
+                                fontSize: 12,
+                                decoration:
+                                    ref.watch(leagueProvider) == "challenger"
+                                        ? TextDecoration.underline
+                                        : TextDecoration.none)),
+                        onPressed: () => ref
+                            .read(leagueProvider.notifier)
+                            .state = 'challenger',
+                      ),
+                    ],
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      TextButton(
+                        child: Text("Grandmaster",
+                            style: TextStyle(
+                                fontSize: 12,
+                                decoration:
+                                    ref.watch(leagueProvider) == "grandmaster"
+                                        ? TextDecoration.underline
+                                        : TextDecoration.none)),
+                        onPressed: () => ref
+                            .read(leagueProvider.notifier)
+                            .state = 'grandmaster',
+                      ),
+                    ],
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      TextButton(
+                        child: Text("Master",
+                            style: TextStyle(
+                                fontSize: 12,
+                                decoration:
+                                    ref.watch(leagueProvider) == "master"
+                                        ? TextDecoration.underline
+                                        : TextDecoration.none)),
+                        onPressed: () =>
+                            ref.read(leagueProvider.notifier).state = 'master',
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              Row(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      TextButton(
+                        child: Text("Traits",
+                            style: TextStyle(
+                                fontSize: 12,
+                                decoration:
+                                    ref.watch(groupByProvider) == "trait"
+                                        ? TextDecoration.underline
+                                        : TextDecoration.none)),
+                        onPressed: () =>
+                            ref.read(groupByProvider.notifier).state = "trait",
+                      ),
+                    ],
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      TextButton(
+                        child: Text("Champions",
+                            style: TextStyle(
+                                fontSize: 12,
+                                decoration:
+                                    ref.watch(groupByProvider) == "champion"
+                                        ? TextDecoration.underline
+                                        : TextDecoration.none)),
+                        onPressed: () => ref
+                            .read(groupByProvider.notifier)
+                            .state = "champion",
+                      ),
+                    ],
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      TextButton(
+                        child: Text("Items",
+                            style: TextStyle(
+                                fontSize: 12,
+                                decoration: ref.watch(groupByProvider) == "item"
+                                    ? TextDecoration.underline
+                                    : TextDecoration.none)),
+                        onPressed: () =>
+                            ref.read(groupByProvider.notifier).state = "trait",
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              buildSliders(ref),
+              buildIgnoreSingleUnitTraitsCheckBox(ref),
+              space,
+              // TODO: Add filter for champion star level and backend to filter traits by champion
+              buildChampionFilter(ref),
+              space,
+              // TODO: Add filter for trait style and backend to filter champions by trait
+              buildTraitFilter(ref),
+              space,
+              // TODO: Correct usage of item api endpoint
+              buildItemFilter(ref),
+            ],
+          ),
+        ),
+      ],
+    ));
+  }
 
-  Padding buildSelectDatetimeButton(BuildContext context, WidgetRef ref) {
-    DateTime minDatetime = ref.watch(minDateTimeProvider);
-    return Padding(
-      padding: listViewChildrenPadding,
-      child: Container(
+  Container buildIgnoreSingleUnitTraitsCheckBox(WidgetRef ref) => Container(
         width: double.infinity, // takes all available width
         height: 50.0, // adjust this value as needed
         alignment: Alignment.centerLeft, // aligns the child to the left
-        child: TextButton.icon(
-          icon: const Icon(Icons.calendar_today),
-          label: Text(
-              "Matches since ${minDatetime.day}-${minDatetime.month}-${minDatetime.year}"),
-          onPressed: () => showDateTimePicker(context: context, ref: ref),
+        child: Row(
+          children: [
+            Switch(
+              value: ref.watch(ignoreSingleUnitTraitsProvider),
+              onChanged: (newValue) {
+                ref.read(ignoreSingleUnitTraitsProvider.notifier).state =
+                    newValue;
+              },
+            ),
+            const Text("Ignore single unit traits",
+                style: TextStyle(fontSize: 16)),
+          ],
         ),
-      ),
+      );
+
+  TextButton buildSelectDatetimeButton(BuildContext context, WidgetRef ref) {
+    DateTime minDatetime = ref.watch(minDateTimeProvider);
+    return TextButton.icon(
+      icon: const Icon(Icons.calendar_today),
+      label: Text(
+          "Matches since ${minDatetime.day}-${minDatetime.month}-${minDatetime.year}",
+          style: const TextStyle(fontSize: 10)),
+      onPressed: () => showDateTimePicker(context: context, ref: ref),
     );
   }
 
@@ -211,210 +324,155 @@ class CompositionGroupPage extends ConsumerWidget {
           );
   }
 
-  Padding buildChampionFilter(WidgetRef ref) {
+  Container buildChampionFilter(WidgetRef ref) {
     final championNamesAsyncValue = ref.watch(championNameProvider);
 
-    return Padding(
-        padding: listViewChildrenPadding,
+    return Container(
         child: championNamesAsyncValue.when(
-          data: (List<String>? championNames) => championNames == null
-              ? Container() // Return an empty Container (or any other widget) when championNames is null
-              : DropdownButtonFormField<String>(
-                  value: ref.watch(championFilterProvider),
-                  decoration: const InputDecoration(
-                    border: OutlineInputBorder(),
-                    labelText: "Filter by Champion",
-                  ),
-                  items: championNames.map((String value) {
-                    return DropdownMenuItem<String>(
-                      value: value,
-                      child: Text(value),
-                    );
-                  }).toList(),
-                  onChanged: (String? newValue) {
-                    ref.read(championFilterProvider.notifier).state = newValue!;
-                  },
-                ),
-          loading: () => const CircularProgressIndicator(),
-          error: (error, stackTrace) => Text(error.toString()),
-        ));
+      data: (List<String>? championNames) => championNames == null
+          ? Container() // Return an empty Container (or any other widget) when championNames is null
+          : DropdownButtonFormField<String>(
+              value: ref.watch(championFilterProvider),
+              decoration: const InputDecoration(
+                border: OutlineInputBorder(),
+                labelText: "Filter by Champion",
+              ),
+              items: championNames.map((String value) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: Text(value),
+                );
+              }).toList(),
+              onChanged: (String? newValue) {
+                ref.read(championFilterProvider.notifier).state = newValue!;
+              },
+            ),
+      loading: () => const CircularProgressIndicator(),
+      error: (error, stackTrace) => Text(error.toString()),
+    ));
   }
 
-  Padding buildItemFilter(WidgetRef ref) {
+  Container buildItemFilter(WidgetRef ref) {
     final itemNamesAsyncValue = ref.watch(itemNameProvider);
 
-    return Padding(
-        padding: listViewChildrenPadding,
+    return Container(
         child: itemNamesAsyncValue.when(
-          data: (List<String>? itemNames) => itemNames == null
-              ? Container() // Return an empty Container (or any other widget) when championNames is null
-              : DropdownButtonFormField<String>(
-                  value: ref.watch(itemFilterProvider),
-                  decoration: const InputDecoration(
-                    border: OutlineInputBorder(),
-                    labelText: "Filter by Item",
-                  ),
-                  items: itemNames.map((String value) {
-                    return DropdownMenuItem<String>(
-                      value: value,
-                      child: Text(value),
-                    );
-                  }).toList(),
-                  onChanged: (String? newValue) {
-                    ref.read(itemFilterProvider.notifier).state = newValue!;
-                  },
-                ),
-          loading: () => const CircularProgressIndicator(),
-          error: (error, stackTrace) => Text(error.toString()),
-        ));
+      data: (List<String>? itemNames) => itemNames == null
+          ? Container() // Return an empty Container (or any other widget) when championNames is null
+          : DropdownButtonFormField<String>(
+              value: ref.watch(itemFilterProvider),
+              decoration: const InputDecoration(
+                border: OutlineInputBorder(),
+                labelText: "Filter by Item",
+              ),
+              items: itemNames.map((String value) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: Text(value),
+                );
+              }).toList(),
+              onChanged: (String? newValue) {
+                ref.read(itemFilterProvider.notifier).state = newValue!;
+              },
+            ),
+      loading: () => const CircularProgressIndicator(),
+      error: (error, stackTrace) => Text(error.toString()),
+    ));
   }
 
-  Padding buildTraitFilter(WidgetRef ref) {
+  Container buildTraitFilter(WidgetRef ref) {
     final traitNamesAsyncValue = ref.watch(traitNameProvider);
 
-    return Padding(
-        padding: listViewChildrenPadding,
+    return Container(
         child: traitNamesAsyncValue.when(
-          data: (List<String>? traitNames) => traitNames == null
-              ? Container()
-              : DropdownButtonFormField<String>(
-                  value: ref.watch(traitFilterProvider),
-                  decoration: const InputDecoration(
-                    border: OutlineInputBorder(),
-                    labelText: "Filter by Trait",
-                  ),
-                  items: traitNames.map((String value) {
-                    return DropdownMenuItem<String>(
-                      value: value,
-                      child: Text(value),
-                    );
-                  }).toList(),
-                  onChanged: (String? newValue) {
-                    ref.read(traitFilterProvider.notifier).state = newValue!;
-                  },
-                ),
-          loading: () => const CircularProgressIndicator(),
-          error: (error, stackTrace) => Text(error.toString()),
-        ));
+      data: (List<String>? traitNames) => traitNames == null
+          ? Container()
+          : DropdownButtonFormField<String>(
+              value: ref.watch(traitFilterProvider),
+              decoration: const InputDecoration(
+                border: OutlineInputBorder(),
+                labelText: "Filter by Trait",
+              ),
+              items: traitNames.map((String value) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: Text(value),
+                );
+              }).toList(),
+              onChanged: (String? newValue) {
+                ref.read(traitFilterProvider.notifier).state = newValue!;
+              },
+            ),
+      loading: () => const CircularProgressIndicator(),
+      error: (error, stackTrace) => Text(error.toString()),
+    ));
   }
 
-  Padding buildPatchInput(WidgetRef ref) => Padding(
-        padding: listViewChildrenPadding,
-        child: TextFormField(
-          onFieldSubmitted: (value) =>
-              ref.read(patchProvider.notifier).state = value,
-          initialValue: ref.watch(patchProvider),
-          decoration: const InputDecoration(
-            labelText: "Patch",
-            border: OutlineInputBorder(),
-          ),
+  TextFormField buildPatchInput(WidgetRef ref) => TextFormField(
+        onFieldSubmitted: (value) =>
+            ref.read(patchProvider.notifier).state = value,
+        initialValue: ref.watch(patchProvider),
+        decoration: const InputDecoration(
+          labelText: "Patch",
+          border: OutlineInputBorder(),
         ),
       );
 
-  Padding buildRegionInput(WidgetRef ref) => Padding(
-      padding: listViewChildrenPadding,
-      child: DropdownButtonFormField<String>(
-          value: ref.watch(regionProvider),
-          decoration: const InputDecoration(
-              border: OutlineInputBorder(), labelText: "Region"),
-          items: <String>['europe', 'korea'].map((String value) {
-            return DropdownMenuItem<String>(
-              value: value,
-              child: Text(value),
-            );
-          }).toList(),
-          onChanged: (String? newValue) {
-            ref.read(regionProvider.notifier).state = newValue!;
-          }));
-
-  Padding buildLeagueInput(WidgetRef ref) => Padding(
-      padding: listViewChildrenPadding,
-      child: DropdownButtonFormField<String>(
-          value: ref.watch(leagueProvider),
-          decoration: const InputDecoration(
-              border: OutlineInputBorder(), labelText: "League"),
-          items: <String>['challenger', 'grandmaster', 'master']
-              .map((String value) {
-            return DropdownMenuItem<String>(
-              value: value,
-              child: Text(value),
-            );
-          }).toList(),
-          onChanged: (String? newValue) {
-            ref.read(leagueProvider.notifier).state = newValue!;
-          }));
-
-  Padding buildMaxPlacementInput(WidgetRef ref) => Padding(
+  Padding buildSliders(WidgetRef ref) {
+    const double minPlacement = 1;
+    const double maxPlacement = 8;
+    int placementDivisions = maxPlacement.toInt() - 1;
+    double maxCombinationSize = ref.watch(groupByProvider) == "trait" ? 7 : 2;
+    return Padding(
         padding: listViewChildrenPadding,
-        child: TextFormField(
-          initialValue: ref.watch(maxPlacementProvider).toString(),
-          onFieldSubmitted: (value) =>
-              ref.read(maxPlacementProvider.notifier).state = int.parse(value),
-          decoration: const InputDecoration(
-            labelText: "Max placement",
-            border: OutlineInputBorder(),
-          ),
-          keyboardType: TextInputType.number,
-          inputFormatters: [
-            FilteringTextInputFormatter.digitsOnly,
-            FilteringTextInputFormatter.allow(RegExp('[1-8]'))
+        child: Column(
+          children: [
+            Text("Max placement: ${ref.watch(maxPlacementProvider)}"),
+            Slider(
+              value: ref.watch(maxPlacementProvider).toDouble(),
+              min: minPlacement,
+              max: maxPlacement,
+              divisions: placementDivisions,
+              onChanged: (double value) {
+                ref.read(maxPlacementProvider.notifier).state = value.toInt();
+              },
+            ),
+            Text(
+                "Max average placement: ${ref.watch(maxAvgPlacementProvider)}"),
+            Slider(
+              value: ref.watch(maxAvgPlacementProvider).toDouble(),
+              min: minPlacement,
+              max: maxPlacement,
+              divisions: placementDivisions,
+              onChanged: (double value) {
+                ref.read(maxAvgPlacementProvider.notifier).state =
+                    value.toInt();
+              },
+            ),
+            Text("Min occurences: ${ref.watch(minCounterProvider)}"),
+            Slider(
+              value: ref.watch(minCounterProvider).toDouble(),
+              min: 1,
+              max: 100,
+              divisions: 20,
+              onChanged: (double value) {
+                ref.read(minCounterProvider.notifier).state = value.toInt();
+              },
+            ),
+            Text(ref.watch(combinationSizeProvider) > 0
+                ? "Combination size: ${ref.watch(combinationSizeProvider)}"
+                : "Combination size"),
+            Slider(
+              value: ref.watch(combinationSizeProvider).toDouble(),
+              min: 0,
+              max: maxCombinationSize,
+              divisions: maxCombinationSize.toInt(),
+              onChanged: (double value) {
+                ref.read(combinationSizeProvider.notifier).state =
+                    value.toInt();
+              },
+            ),
           ],
-        ),
-      );
-
-  Padding buildMaxAvgPlacementInput(WidgetRef ref) => Padding(
-        padding: listViewChildrenPadding,
-        child: TextFormField(
-          initialValue: ref.watch(maxAvgPlacementProvider).toString(),
-          onFieldSubmitted: (value) => ref
-              .read(maxAvgPlacementProvider.notifier)
-              .state = int.parse(value),
-          decoration: const InputDecoration(
-            labelText: "Max Avg placement",
-            border: OutlineInputBorder(),
-          ),
-          keyboardType: TextInputType.number,
-          inputFormatters: [
-            FilteringTextInputFormatter.digitsOnly,
-            FilteringTextInputFormatter.allow(RegExp('[1-8]'))
-          ],
-        ),
-      );
-
-  Padding buildMinCounterInput(WidgetRef ref) => Padding(
-        padding: listViewChildrenPadding,
-        child: TextFormField(
-          initialValue: ref.watch(minCounterProvider).toString(),
-          onFieldSubmitted: (value) =>
-              ref.read(minCounterProvider.notifier).state = int.parse(value),
-          decoration: const InputDecoration(
-            labelText: "Min occurences",
-            border: OutlineInputBorder(),
-          ),
-          keyboardType: TextInputType.number,
-          inputFormatters: [
-            FilteringTextInputFormatter.digitsOnly,
-            FilteringTextInputFormatter.allow(RegExp('[0-9]'))
-          ],
-        ),
-      );
-
-  Padding buildCombinationSizeInput(WidgetRef ref) => Padding(
-        padding: listViewChildrenPadding,
-        child: TextFormField(
-          initialValue: ref.watch(combinationSizeProvider).toString(),
-          onFieldSubmitted: (value) =>
-              ref.read(combinationSizeProvider.notifier).state = value,
-          decoration: const InputDecoration(
-            labelText: "Combination size",
-            helperText: "Traits: [1-7]  Champions [1-2]",
-            border: OutlineInputBorder(),
-          ),
-          keyboardType: TextInputType.number,
-          inputFormatters: [
-            FilteringTextInputFormatter.digitsOnly,
-            FilteringTextInputFormatter.allow(RegExp('[1-7]'))
-          ],
-        ),
-      );
+        ));
+  }
 }
